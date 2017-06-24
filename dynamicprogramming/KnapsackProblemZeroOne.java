@@ -1,6 +1,8 @@
 /* 0/1 knapsack problem */
 package dynamicprogramming;
 
+import java.util.Arrays;
+
 /* 
  * 0/1 KnapSack Equation
  * For every item, indexed by n, if the weight of the item is less than or equal to the remaining weight of the knapsack, then
@@ -35,11 +37,62 @@ package dynamicprogramming;
  */
 
 public class KnapsackProblemZeroOne {
+	// recursive approach with memoization. 
+	// store solutions to sub-problems and use when needed for same recursive calls. 
+	// this is also a top down approach, where the recursive calls are placed in the function stack, 
+	// till the smaller sub-problems have returned. 
+	// Use a 2-d array to store the results.
+	
+	public static int bestValueRecursiveWithMem(int n, int max_w, int[] W, int[] V){
+		
+		int[][] resultValue = new int[n + 1][max_w +1]; //W.length gives total number of items
+		
+		
+		//when max_wt = 0, Value is always 0
+		//when n = 0, Value is always 0, Java takes care of this when creating the array
+		for(int i = 1; i < resultValue.length ; ++i)
+			Arrays.fill(resultValue[i], -1);	//initialize the array with -1
+		for(int i = 1; i < resultValue.length; ++i ){
+			resultValue[i][0] = 0;
+		}
+		
+		//or use two for loops to avoid overwriting in col 0 with -1
+//		for(int i = 1; i < resultValue.length  ; ++i )
+//			for(int j = 1 ; j < resultValue[i].length; ++j)
+//				resultValue[i][j] = -1;
+		 
+		bestValueRecursiveWithMem(n, max_w, W, V, resultValue);
+		return resultValue[n][max_w]; //resultValue[n][max_w] can be used only if n = max value of no of items, not 0
+	}
+	
+	public static int bestValueRecursiveWithMem(int n, int max_w, int[] W, int[] V, int[][] result){
+		//check for correct value of n and W
+		if(n <= 0 || max_w <= 0)
+			return 0;
+		
+		//check if the sub-problem has already been computed
+		if(result[n][max_w] != -1)
+			return result[n][max_w];
+
+		
+		//else continue with the recursive call
+		int tempResult = 0;
+		
+		if(W[n-1] > max_w){
+			tempResult = bestValueRecursiveWithMem(n - 1, max_w, W, V, result);
+		}else{
+			tempResult = Math.max(bestValueRecursiveWithMem(n - 1, max_w, W, V, result), 
+								  V[n-1] + bestValueRecursiveWithMem(n - 1, max_w - W[n-1], W, V, result)	);
+		}
+		result[n][max_w] = tempResult;
+		return 	result[n][max_w];
+	}
+	
+	
+	
 	// basic recursive approach
 	// since n is used as the number of items, as well as the index to an array, n=0 is a valid index position
 	// care has to be taken to make sure w[0] or v[0] is not ignored due to the first if condition
-	
-
 	public static int bestValueRecursive(int itemNumberIndex, int capacity, final int[] W, final int[] V){
 			if (itemNumberIndex < 0 || capacity == 0){
 				return 0; //Value in the knapsack is zero if no items or no capacity
@@ -93,7 +146,9 @@ public class KnapsackProblemZeroOne {
 		
 //		int numberOfItems = V.length;
 //		System.out.println("Result = " + bestValueRecursive(numberOfItems-1,capacity,W,V));
-		System.out.println("Result = " + bestValueRecursive2(0,capacity,W,V)); //calling bestValueRecursive2
+//		System.out.println("Result = " + bestValueRecursive2(0,capacity,W,V)); //calling bestValueRecursive2
+		
+		System.out.println("Result = " + bestValueRecursiveWithMem(V.length,capacity,W,V)); //calling bestValueRecursiveWithMem
 
 	}
 
