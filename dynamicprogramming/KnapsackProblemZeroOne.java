@@ -4,29 +4,37 @@ package dynamicprogramming;
 import java.util.Arrays;
 
 /* 
+ * Knapsack is a combinatorial problem in which we have to find the combination of 'n' or less items such that the total value is maximum,
+ * and total weight is less than or equal to the capacity of the knapsack.
+ * 
+ * For every item, there are two possibilities to consider. Either the item is included in the solution, or its excluded from the solution.
+ * 
+ * 
  * 0/1 KnapSack Equation
+ * 
  * For every item, indexed by n, if the weight of the item is less than or equal to the remaining weight of the knapsack, then
  * there are two conditions-
- * 1. the item [n] is added in the knapsack.
+ * 1. the item [n] is added in the knapsack
  * then value  = value[n] + remaining value is recursively computed with the next/previous item, 
  * the total weight of the knapsack is reduced by an amount equal to the weight of the item, which is used in further recursive calls. 
  * 
  * 2. the item [n] is not added in the knapsack. 
  * In that case, find the value recursively with the next/previous item. 
- * Thus, the max of the two values is the answer for that instance of n and weight.
  * 
- * Finally, if the weight of the item [n] is greater than the current weight of the knapsack, skip that item, do step 2.
+ * The best solution is the max of the two values computed recursively for a given n and weight. 
  * 
- * recursively, 
- * find_max_value(n,max_w) = find_max_value(n-1, max_w), if W[n] > max_w,
+ * Recursively, 
+ * find_max_value(n,max_w) = find_max_value(n-1, max_w), if W[n] > max_w  weight of the item[n] is greater than the current weight of the knapsack
  * 							 max( V[n] + find_max_value(n-1, max_w - W[n]), find_max_value(n-1, max_w)   if W[n] <= max_w
  * 
- * recursive is achieved with a top-down approach, i.e. start with the given problem of 'n' and 'max_value'. then, call the sub-problems 
+ * recursion is achieved with a top-down approach, i.e. start with the given problem of 'n' and 'max_value'. then, call the sub-problems 
  * as needed, and return their values. 
  * 
- * Speed can be improved by memoization, i.e. saving the results of the smaller subproblems, i.e. varying n and max_w. 
+ * Speed can be improved by memoization, i.e. saving the results of the smaller subproblems.
+ * What are the smaller sub-problems ? 
+ * As 'n' and 'max-w' varies, the max_value for varying weight and n are the smaller sub-problems.  
  * 
- * dynamic programming
+ * Dynamic programming - bottom-up approach
  *  max_value[n, max_w] = 	max_value[n - 1, max_w], if W[n] > max_w
  *  						max(V[n] + max_value[n-1, max_w-W[n]], max_value[n - 1, max_w] ), if W[n] <= max_w
  * 
@@ -81,19 +89,27 @@ public class KnapsackProblemZeroOne {
 	 * store solutions to sub-problems and use when needed for same recursive calls. 
 	 * this is also a top down approach, where the recursive calls are placed in the function stack, 
 	 * till the smaller sub-problems have returned. 
-	 * Use a 2-d array to store the results. */
+	 * Use a 2-d array to store the results. 
+	 * What is a sub-problem ? A knapsack of smaller capacity.  
+	 * What result should we store ? Max value for a given capacity of the knapsack. 
+	 * The subproblems are called recursively, where the weight of the knapsack reduces depending upon the 
+	 * current computation, and then when the recursive function returns, its result is stored corresponding to the smaller 
+	 * capacity of knapsack.
+	 * */
 	
 	public static int bestValueRecursiveWithMem(int n, int max_w, int[] W, int[] V){
 		
 		int[][] resultValue = new int[n + 1][max_w +1]; //W.length gives total number of items
-		
+		// n+1 and max_w+1 because n=0, and weight=0 is a valid combination - terminating case. 
+		// if say, there n = 5 items, max_w = 10, resultValue[5][10] needs to be a valid array position.
 		
 		//when max_wt = 0, Value is always 0
-		//when n = 0, Value is always 0, Java takes care of this when creating the array
-		for(int i = 1; i < resultValue.length ; ++i)
-			Arrays.fill(resultValue[i], -1);	//initialize the array with -1
-		for(int i = 1; i < resultValue.length; ++i ){
-			resultValue[i][0] = 0;
+		//when n = 0, Value is always 0, Java takes care of this when creating the array, which is zero initialized
+		// hence start with i = 1.
+		for(int row = 1; row < resultValue.length ; ++row)
+			Arrays.fill(resultValue[row], -1);	//initialize the array with -1
+		for(int row = 1; row < resultValue.length; ++row ){
+			resultValue[row][0] = 0; //the 0th column is for weight = 0, and is always 0 for any number of items(rows)
 		}
 		
 		//or use two for loops to avoid overwriting in col 0 with -1
@@ -102,10 +118,10 @@ public class KnapsackProblemZeroOne {
 //				resultValue[i][j] = -1;
 		 
 		bestValueRecursiveWithMem(n, max_w, W, V, resultValue);
-		return resultValue[n][max_w]; //resultValue[n][max_w] can be used only if n = max value of no of items, not 0
+		return resultValue[n][max_w]; //resultValue[n][max_w] can be used only if n = no of items, and not 0
 	}
 	
-	public static int bestValueRecursiveWithMem(int n, int max_w, int[] W, int[] V, int[][] result){
+	private static int bestValueRecursiveWithMem(int n, int max_w, int[] W, int[] V, int[][] result){
 		//check for correct value of n and W
 		if(n <= 0 || max_w <= 0)
 			return 0;
@@ -118,6 +134,7 @@ public class KnapsackProblemZeroOne {
 		//else continue with the recursive call
 		int tempResult = 0;
 		
+		//W and V array are always 1 behind the current index, since index 0 is has valid data. 
 		if(W[n-1] > max_w){
 			tempResult = bestValueRecursiveWithMem(n - 1, max_w, W, V, result);
 		}else{
@@ -177,14 +194,14 @@ public class KnapsackProblemZeroOne {
 	
 	/* unit testing */
 	public static void main(String [] args){
-//		int capacity = 50;
-//		int[] V = {60,100,120};
-//		int[] W = {10,20,30};
+		int capacity = 50;
+		int[] V = {60,100,120};
+		int[] W = {10,20,30};
 		//answer = 220
 		
-		int capacity = 15;
-		int[] V = {7,9,5,12,14,6,12};
-		int[] W = {3,4,2,6,7,3,5};
+//		int capacity = 15;
+//		int[] V = {7,9,5,12,14,6,12};
+//		int[] W = {3,4,2,6,7,3,5};
 		//answer = 34
 		
 //		int numberOfItems = V.length;
